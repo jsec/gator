@@ -40,3 +40,12 @@ tasks:
       - task: db:migrate
       - task: db:codegen
 
+  db:up:
+    dir: "{{.TASKFILE_DIR}}/docker"
+    cmds:
+      - docker compose up -d
+
+  db:down:
+    dir: "{{.TASKFILE_DIR}}/docker"
+    cmds:
+      - docker compose down
