@@ -1,0 +1,42 @@
+version: '3'
+
+tasks:
+  tidy:
+    cmds:
+      - cmd: go mod tidy
+        silent: true
+
+  build:
+    cmds:
+      - cmd: go build
+        silent: true
+
+  run:
+    cmds:
+      - cmd: go run main.go
+        silent: true
+
+  db:migrate:
+    dir: "{{.TASKFILE_DIR}}/sql/schema"
+    cmds:
+      - cmd: goose up
+        silent: true
+
+  db:rollback:
+    dir: "{{.TASKFILE_DIR}}/sql/schema"
+    cmds:
+      - cmd: goose down
+        silent: true
+
+  db:codegen:
+    cmds:
+      - cmd: sqlc generate
+        silent: true
+      - cmd: echo "Codegen complete"
+        silent: true
+
+  db:update:
+    cmds:
+      - task: db:migrate
+      - task: db:codegen
+
