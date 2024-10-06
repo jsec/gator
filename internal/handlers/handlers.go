@@ -62,3 +62,22 @@ func Reset(s *state.State, cmd command.Command) error {
 
 	return nil
 }
+
+func ListUsers(s *state.State, cmd command.Command) error {
+	users, err := s.DB.GetUsers(context.Background())
+	if err != nil {
+		return fmt.Errorf("Error retrieving users:", err)
+	}
+
+	for _, user := range users {
+		name := user.Name
+
+		if name == s.Config.CurrentUserName {
+			name += " (current)"
+		}
+
+		fmt.Println("*", name)
+	}
+
+	return nil
+}
