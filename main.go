@@ -1,70 +1,34 @@
 package main
 
 import (
-	"fmt"
+	"database/sql"
 	"log"
 	"os"
 
-	"github.com/jsec/gator/internal/config"
+	"github.com/jsec/gator/internal/command"
+	"github.com/jsec/gator/internal/database"
+	"github.com/jsec/gator/internal/handlers"
+	"github.com/jsec/gator/internal/state"
 	_ "github.com/lib/pq"
 )
 
-type command struct {
-	name string
-	args []string
-}
-
-type commands struct {
-	handlers map[string]func(*state, command) error
-}
-
-func (c *commands) register(name string, f func(*state, command) error) {
-	c.handlers[name] = f
-}
-
-func (c *commands) run(s *state, cmd command) error {
-	handler := c.handlers[cmd.name]
-	err := handler(s, cmd)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-
-	return nil
-}
-
-type state struct {
-	config *config.Config
-}
-
-func handlerLogin(s *state, cmd command) error {
-	if len(cmd.args) == 0 {
-		return fmt.Errorf("A name must be provided.")
-	}
-
-	err := s.config.SetUser(cmd.args[0])
-	if err != nil {
-		return fmt.Errorf("Error setting user:", err)
-	}
-
-	fmt.Println("User has been set.")
-	return nil
-}
-
 func main() {
-	cfg, err := config.Read()
+	s := state.New()
+
+	db, err := sql.Open("postgres", s.Config.DatabaseURL)
 	if err != nil {
-		log.Fatalf("error reading config: %v", err)
+		log.Fatalf("error connecting to database:", err)
+	}
+	defer db.Close()
+
+	s.DB = database.New(db)
+
+	commands := command.Commands{
+		Handlers: make(map[string]func(*state.State, command.Command) error),
 	}
 
-	s := state{
-		config: &cfg,
-	}
-
-	commands := commands{
-		handlers: make(map[string]func(*state, command) error),
-	}
-
-	commands.register("login", handlerLogin)
+	commands.Register("login", handlers.Login)
+	commands.Register("register", handlers.Register)
 
 	args := os.Args
 
@@ -72,9 +36,9 @@ func main() {
 		log.Fatal("Not enough arguments specified")
 	}
 
-	commands.run(&s, command{
-		name: args[1],
-		args: args[2:],
+	commands.Run(&s, command.Command{
+		Name: args[1],
+		Args: args[2:],
 	})
 
 }
