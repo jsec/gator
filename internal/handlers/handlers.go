@@ -53,3 +53,12 @@ func Register(s *state.State, cmd command.Command) error {
 
 	return nil
 }
+
+func Reset(s *state.State, cmd command.Command) error {
+	err := s.DB.DeleteUsers(context.Background())
+	if err != nil {
+		return fmt.Errorf("Error deleting users:", err)
+	}
+
+	return nil
+}
