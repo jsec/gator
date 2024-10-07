@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jsec/gator/internal/command"
 	"github.com/jsec/gator/internal/database"
+	"github.com/jsec/gator/internal/rss"
 	"github.com/jsec/gator/internal/state"
 )
 
@@ -79,5 +80,15 @@ func ListUsers(s *state.State, cmd command.Command) error {
 		fmt.Println("*", name)
 	}
 
+	return nil
+}
+
+func AggregateFeeds(s *state.State, cmd command.Command) error {
+	feed, err := rss.GetFeed(context.Background(), "https://www.wagslane.dev/index.xml")
+	if err != nil {
+		return fmt.Errorf("Error retrieving RSS feed:", err)
+	}
+
+	fmt.Println(feed)
 	return nil
 }
