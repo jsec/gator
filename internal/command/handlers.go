@@ -104,7 +104,7 @@ func handlerAddFeed(s *state.State, cmd Command) error {
 		return fmt.Errorf("Error fetching current user:", err)
 	}
 
-	feed, err := s.DB.CreateFeed(context.Background(), database.CreateFeedParams{
+	feed, err := s.DB.CreateFeed(ctx, database.CreateFeedParams{
 		ID:        uuid.New(),
 		Name:      cmd.Args[0],
 		Url:       cmd.Args[1],
@@ -113,7 +113,22 @@ func handlerAddFeed(s *state.State, cmd Command) error {
 		UpdatedAt: time.Now(),
 	})
 
-	fmt.Println(feed)
+	if err != nil {
+		return fmt.Errorf("Error creating feed:", err)
+	}
+
+	_, err = s.DB.CreateFollow(ctx, database.CreateFollowParams{
+		ID:        uuid.New(),
+		UserID:    user.ID,
+		FeedID:    feed.ID,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	})
+
+	if err != nil {
+		return fmt.Errorf("Error creating follow for feed:", err)
+	}
+
 	return nil
 }
 
@@ -125,6 +140,55 @@ func handlerListAllFeeds(s *state.State, cmd Command) error {
 
 	for _, feed := range feeds {
 		fmt.Println("Feed:", feed.Name, "URL:", feed.Url, "User:", feed.UserName)
+	}
+
+	return nil
+}
+
+func handlerFollow(s *state.State, cmd Command) error {
+	if len(cmd.Args) == 0 {
+		return fmt.Errorf("Not enough arguments provided")
+	}
+
+	ctx := context.Background()
+
+	user, err := s.DB.GetUser(ctx, s.Config.CurrentUserName)
+	if err != nil {
+		return fmt.Errorf("Error fetching current user:", err)
+	}
+
+	feed, err := s.DB.GetFeedByURL(ctx, cmd.Args[0])
+	if err != nil {
+		return fmt.Errorf("Error fetching feed:", err)
+	}
+
+	follow, err := s.DB.CreateFollow(context.Background(), database.CreateFollowParams{
+		ID:        uuid.New(),
+		UserID:    user.ID,
+		FeedID:    feed.ID,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	})
+
+	fmt.Println("Feed:", follow.FeedName, "User:", follow.UserName)
+	return nil
+}
+
+func handlerGetUserFollows(s *state.State, cmd Command) error {
+	ctx := context.Background()
+
+	user, err := s.DB.GetUser(ctx, s.Config.CurrentUserName)
+	if err != nil {
+		return fmt.Errorf("Error fetching current user:", err)
+	}
+
+	follows, err := s.DB.GetFollowsForUser(ctx, user.ID)
+	if err != nil {
+		return fmt.Errorf("Error fetching follows for user:", err)
+	}
+
+	for _, follow := range follows {
+		fmt.Println(follow.Name)
 	}
 
 	return nil
