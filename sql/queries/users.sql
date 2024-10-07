@@ -15,4 +15,4 @@ select * from users where name = $1;
 select * from users;
 
 -- name: DeleteUsers :exec
-truncate table users;
+delete from users;

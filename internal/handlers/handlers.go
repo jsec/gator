@@ -92,3 +92,28 @@ func AggregateFeeds(s *state.State, cmd command.Command) error {
 	fmt.Println(feed)
 	return nil
 }
+
+func AddFeed(s *state.State, cmd command.Command) error {
+	if len(cmd.Args) < 2 {
+		return fmt.Errorf("Not enough arguments provided")
+	}
+
+	ctx := context.Background()
+
+	user, err := s.DB.GetUser(ctx, s.Config.CurrentUserName)
+	if err != nil {
+		return fmt.Errorf("Error fetching current user:", err)
+	}
+
+	feed, err := s.DB.CreateFeed(context.Background(), database.CreateFeedParams{
+		ID:        uuid.New(),
+		Name:      cmd.Args[0],
+		Url:       cmd.Args[1],
+		UserID:    user.ID,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	})
+
+	fmt.Println(feed)
+	return nil
+}
