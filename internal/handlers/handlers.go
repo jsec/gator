@@ -117,3 +117,16 @@ func AddFeed(s *state.State, cmd command.Command) error {
 	fmt.Println(feed)
 	return nil
 }
+
+func ListAllFeeds(s *state.State, cmd command.Command) error {
+	feeds, err := s.DB.GetAllFeeds(context.Background())
+	if err != nil {
+		return fmt.Errorf("Error retrieving feeds:", err)
+	}
+
+	for _, feed := range feeds {
+		fmt.Println("Feed:", feed.Name, "URL:", feed.Url, "User:", feed.UserName)
+	}
+
+	return nil
+}

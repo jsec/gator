@@ -33,6 +33,7 @@ func main() {
 	commands.Register("users", handlers.ListUsers)
 	commands.Register("agg", handlers.AggregateFeeds)
 	commands.Register("addfeed", handlers.AddFeed)
+	commands.Register("feeds", handlers.ListAllFeeds)
 
 	args := os.Args
 
