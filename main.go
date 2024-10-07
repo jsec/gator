@@ -7,7 +7,6 @@ import (
 
 	"github.com/jsec/gator/internal/command"
 	"github.com/jsec/gator/internal/database"
-	"github.com/jsec/gator/internal/handlers"
 	"github.com/jsec/gator/internal/state"
 	_ "github.com/lib/pq"
 )
@@ -22,19 +21,7 @@ func main() {
 	defer db.Close()
 
 	s.DB = database.New(db)
-
-	commands := command.Commands{
-		Handlers: make(map[string]func(*state.State, command.Command) error),
-	}
-
-	commands.Register("login", handlers.Login)
-	commands.Register("register", handlers.Register)
-	commands.Register("reset", handlers.Reset)
-	commands.Register("users", handlers.ListUsers)
-	commands.Register("agg", handlers.AggregateFeeds)
-	commands.Register("addfeed", handlers.AddFeed)
-	commands.Register("feeds", handlers.ListAllFeeds)
-
+	commands := command.NewCommands()
 	args := os.Args
 
 	if len(args) < 2 {
@@ -45,5 +32,4 @@ func main() {
 		Name: args[1],
 		Args: args[2:],
 	})
-
 }

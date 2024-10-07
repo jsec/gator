@@ -1,4 +1,4 @@
-package handlers
+package command
 
 import (
 	"context"
@@ -6,13 +6,12 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jsec/gator/internal/command"
 	"github.com/jsec/gator/internal/database"
 	"github.com/jsec/gator/internal/rss"
 	"github.com/jsec/gator/internal/state"
 )
 
-func Login(s *state.State, cmd command.Command) error {
+func handlerLogin(s *state.State, cmd Command) error {
 	if len(cmd.Args) == 0 {
 		return fmt.Errorf("A name must be provided.")
 	}
@@ -31,7 +30,7 @@ func Login(s *state.State, cmd command.Command) error {
 	return nil
 }
 
-func Register(s *state.State, cmd command.Command) error {
+func handlerRegister(s *state.State, cmd Command) error {
 	if len(cmd.Args) == 0 {
 		return fmt.Errorf("A name must be provided.")
 	}
@@ -55,7 +54,7 @@ func Register(s *state.State, cmd command.Command) error {
 	return nil
 }
 
-func Reset(s *state.State, cmd command.Command) error {
+func handlerReset(s *state.State, cmd Command) error {
 	err := s.DB.DeleteUsers(context.Background())
 	if err != nil {
 		return fmt.Errorf("Error deleting users:", err)
@@ -64,7 +63,7 @@ func Reset(s *state.State, cmd command.Command) error {
 	return nil
 }
 
-func ListUsers(s *state.State, cmd command.Command) error {
+func handlerListUsers(s *state.State, cmd Command) error {
 	users, err := s.DB.GetUsers(context.Background())
 	if err != nil {
 		return fmt.Errorf("Error retrieving users:", err)
@@ -83,7 +82,7 @@ func ListUsers(s *state.State, cmd command.Command) error {
 	return nil
 }
 
-func AggregateFeeds(s *state.State, cmd command.Command) error {
+func handlerAggregate(s *state.State, cmd Command) error {
 	feed, err := rss.GetFeed(context.Background(), "https://www.wagslane.dev/index.xml")
 	if err != nil {
 		return fmt.Errorf("Error retrieving RSS feed:", err)
@@ -93,7 +92,7 @@ func AggregateFeeds(s *state.State, cmd command.Command) error {
 	return nil
 }
 
-func AddFeed(s *state.State, cmd command.Command) error {
+func handlerAddFeed(s *state.State, cmd Command) error {
 	if len(cmd.Args) < 2 {
 		return fmt.Errorf("Not enough arguments provided")
 	}
@@ -118,7 +117,7 @@ func AddFeed(s *state.State, cmd command.Command) error {
 	return nil
 }
 
-func ListAllFeeds(s *state.State, cmd command.Command) error {
+func handlerListAllFeeds(s *state.State, cmd Command) error {
 	feeds, err := s.DB.GetAllFeeds(context.Background())
 	if err != nil {
 		return fmt.Errorf("Error retrieving feeds:", err)

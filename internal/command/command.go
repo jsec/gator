@@ -1,7 +1,6 @@
 package command
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/jsec/gator/internal/state"
@@ -16,7 +15,7 @@ type Commands struct {
 	Handlers map[string]func(*state.State, Command) error
 }
 
-func (c *Commands) Register(name string, f func(*state.State, Command) error) {
+func (c *Commands) register(name string, f func(*state.State, Command) error) {
 	c.Handlers[name] = f
 }
 
@@ -26,9 +25,24 @@ func (c *Commands) Run(s *state.State, cmd Command) error {
 
 	err := handler(s, cmd)
 	if err != nil {
-		fmt.Println("Error:", err.Error())
 		log.Fatal(err.Error())
 	}
 
 	return nil
+}
+
+func NewCommands() Commands {
+	commands := Commands{
+		Handlers: make(map[string]func(*state.State, Command) error),
+	}
+
+	commands.register("login", handlerLogin)
+	commands.register("register", handlerRegister)
+	commands.register("reset", handlerReset)
+	commands.register("users", handlerListUsers)
+	commands.register("agg", handlerAggregate)
+	commands.register("addfeed", handlerAddFeed)
+	commands.register("feeds", handlerListAllFeeds)
+
+	return commands
 }
