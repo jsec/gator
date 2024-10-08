@@ -18,7 +18,7 @@ func handlerLogin(s *state.State, cmd Command) error {
 
 	user, err := s.DB.GetUser(context.Background(), cmd.Args[0])
 	if err != nil {
-		return fmt.Errorf("That user does not exist", err)
+		return fmt.Errorf("User not found", err)
 	}
 
 	err = s.Config.SetUser(user.Name)
@@ -92,17 +92,12 @@ func handlerAggregate(s *state.State, cmd Command) error {
 	return nil
 }
 
-func handlerAddFeed(s *state.State, cmd Command) error {
+func handlerAddFeed(s *state.State, cmd Command, user database.User) error {
 	if len(cmd.Args) < 2 {
 		return fmt.Errorf("Not enough arguments provided")
 	}
 
 	ctx := context.Background()
-
-	user, err := s.DB.GetUser(ctx, s.Config.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("Error fetching current user:", err)
-	}
 
 	feed, err := s.DB.CreateFeed(ctx, database.CreateFeedParams{
 		ID:        uuid.New(),
@@ -145,17 +140,12 @@ func handlerListAllFeeds(s *state.State, cmd Command) error {
 	return nil
 }
 
-func handlerFollow(s *state.State, cmd Command) error {
+func handlerFollow(s *state.State, cmd Command, user database.User) error {
 	if len(cmd.Args) == 0 {
 		return fmt.Errorf("Not enough arguments provided")
 	}
 
 	ctx := context.Background()
-
-	user, err := s.DB.GetUser(ctx, s.Config.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("Error fetching current user:", err)
-	}
 
 	feed, err := s.DB.GetFeedByURL(ctx, cmd.Args[0])
 	if err != nil {
@@ -174,13 +164,8 @@ func handlerFollow(s *state.State, cmd Command) error {
 	return nil
 }
 
-func handlerGetUserFollows(s *state.State, cmd Command) error {
+func handlerGetUserFollows(s *state.State, cmd Command, user database.User) error {
 	ctx := context.Background()
-
-	user, err := s.DB.GetUser(ctx, s.Config.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("Error fetching current user:", err)
-	}
 
 	follows, err := s.DB.GetFollowsForUser(ctx, user.ID)
 	if err != nil {
