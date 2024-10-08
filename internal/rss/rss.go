@@ -7,6 +7,9 @@ import (
 	"html"
 	"io"
 	"net/http"
+	"time"
+
+	"github.com/jsec/gator/internal/database"
 )
 
 type Feed struct {
@@ -25,7 +28,7 @@ type Item struct {
 	PubDate     string `xml:"pubDate"`
 }
 
-func GetFeed(ctx context.Context, feedURL string) (*Feed, error) {
+func fetchFeed(ctx context.Context, feedURL string) (*Feed, error) {
 	client := http.Client{}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, feedURL, nil)
@@ -61,4 +64,33 @@ func GetFeed(ctx context.Context, feedURL string) (*Feed, error) {
 	}
 
 	return &feed, nil
+}
+
+func ScrapeFeeds(ctx context.Context, db *database.Queries, timeBetweenReqs string) {
+	duration, err := time.ParseDuration(timeBetweenReqs)
+	if err != nil {
+		fmt.Println("Invalid duration string:", err.Error())
+		return
+	}
+
+	fmt.Println("Scraping feeds every", timeBetweenReqs)
+
+	ticker := time.NewTicker(duration)
+	for ; ; <-ticker.C {
+		feed, err := db.GetNextFeedToFetch(ctx)
+		if err != nil {
+			fmt.Println("Error retrieving feed to fetch:", err.Error())
+			return
+		}
+
+		fetched, err := fetchFeed(ctx, feed.Url)
+		if err != nil {
+			fmt.Println("Error fetching feed:", err.Error())
+			return
+		}
+
+		for _, item := range fetched.Channel.Item {
+			fmt.Println("- ", item.Title)
+		}
+	}
 }

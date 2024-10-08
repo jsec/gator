@@ -83,12 +83,11 @@ func handlerListUsers(s *state.State, cmd Command) error {
 }
 
 func handlerAggregate(s *state.State, cmd Command) error {
-	feed, err := rss.GetFeed(context.Background(), "https://www.wagslane.dev/index.xml")
-	if err != nil {
-		return fmt.Errorf("Error retrieving RSS feed:", err)
+	if len(cmd.Args) == 0 {
+		return fmt.Errorf("Not enough arguments provided")
 	}
 
-	fmt.Println(feed)
+	rss.ScrapeFeeds(context.Background(), s.DB, cmd.Args[0])
 	return nil
 }
 

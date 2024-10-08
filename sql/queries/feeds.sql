@@ -13,3 +13,15 @@ join users u on f.user_id = u.id;
 
 -- name: GetFeedByURL :one
 select * from feeds where url = $1;
+
+-- name: MarkFeedFetched :exec
+-- id, timestamp
+update feeds
+set last_fetched_at = $2,
+    updated_at = $2
+where id = $1;
+
+-- name: GetNextFeedToFetch :one
+select * from feeds
+order by last_fetched_at nulls first
+limit 1;
