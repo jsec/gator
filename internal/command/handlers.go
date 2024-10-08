@@ -178,3 +178,19 @@ func handlerGetUserFollows(s *state.State, cmd Command, user database.User) erro
 
 	return nil
 }
+
+func handlerDeleteFollow(s *state.State, cmd Command, user database.User) error {
+	if len(cmd.Args) == 0 {
+		return fmt.Errorf("Not enough arguments provided")
+	}
+
+	err := s.DB.DeleteFollow(context.Background(), database.DeleteFollowParams{
+		UserID: user.ID,
+		Url:    cmd.Args[0],
+	})
+	if err != nil {
+		return fmt.Errorf("Error deleting follow:", err)
+	}
+
+	return nil
+}
