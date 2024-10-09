@@ -1,3 +1,7 @@
-gator
+## Gator
 
-![No one expects the Spanish Inquisition, Lane](https://upload.wikimedia.org/wikipedia/en/7/73/Trollface.png)
+### Installation
+`go install https://github.com/jsec/gator`
+
+### Usage
+`export gatorhelp='open https://www.boot.dev/courses/build-blog-aggregator' && gatorhelp`
