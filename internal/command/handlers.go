@@ -3,6 +3,7 @@ package command
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -189,6 +190,30 @@ func handlerDeleteFollow(s *state.State, cmd Command, user database.User) error 
 	})
 	if err != nil {
 		return fmt.Errorf("Error deleting follow:", err)
+	}
+
+	return nil
+}
+
+func handlerBrowse(s *state.State, cmd Command, user database.User) error {
+	var limit int32 = 2
+
+	if len(cmd.Args) > 0 {
+		argLimit, _ := strconv.Atoi(cmd.Args[0])
+		limit = int32(argLimit)
+	}
+
+	posts, err := s.DB.GetPostsForUser(context.Background(), database.GetPostsForUserParams{
+		UserID: user.ID,
+		Limit:  limit,
+	})
+
+	if err != nil {
+		return fmt.Errorf("Error fetching posts:", err)
+	}
+
+	for _, post := range posts {
+		fmt.Println("Title:", post.Title, "URL:", post.Url)
 	}
 
 	return nil

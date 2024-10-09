@@ -2,14 +2,18 @@ package rss
 
 import (
 	"context"
+	"database/sql"
 	"encoding/xml"
 	"fmt"
 	"html"
 	"io"
+	"log"
 	"net/http"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jsec/gator/internal/database"
+	"github.com/lib/pq"
 )
 
 type Feed struct {
@@ -90,7 +94,29 @@ func ScrapeFeeds(ctx context.Context, db *database.Queries, timeBetweenReqs stri
 		}
 
 		for _, item := range fetched.Channel.Item {
-			fmt.Println("- ", item.Title)
+			_, err = db.CreatePost(ctx, database.CreatePostParams{
+				ID:          uuid.New(),
+				Title:       item.Title,
+				Url:         item.Link,
+				Description: sql.NullString{String: item.Description, Valid: true},
+				FeedID:      feed.ID,
+				PublishedAt: time.Now(),
+				CreatedAt:   time.Now(),
+				UpdatedAt:   time.Now(),
+			})
+
+			if err != nil {
+				pgErr, ok := err.(*pq.Error)
+
+				if !ok {
+					log.Fatal("Error saving posts:", err.Error())
+				}
+
+				if ok && pgErr.Code.Name() != "unique_violation" {
+					log.Fatal("Database error saving posts:", err.Error())
+
+				}
+			}
 		}
 	}
 }
